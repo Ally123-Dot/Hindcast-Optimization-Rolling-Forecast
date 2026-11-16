@@ -2,32 +2,32 @@
 
 Python framework for Bayesian parameter calibration and ensemble trajectory forecasting in Arctic ice-covered waters.
 
-## 项目说明
+## Overview
 
-本仓库公开高冰区的一小时回溯标定与一小时集合轨迹预报框架。程序利用观测轨迹标定漂移参数，再从回溯结束时的观测位置出发，开展下一小时的集合预报。
+This repository provides a framework for one-hour retrospective calibration followed by one-hour ensemble trajectory forecasting in high-ice-concentration waters. The model calibrates drift parameters against observed trajectories, then initializes the forecast from the observed position at the end of the calibration period.
 
-通过替换样本清单及对应的数据和输出路径，同一框架也可用于边缘冰区和开阔水域。
+The same framework can be applied to marginal ice zones and open water by replacing the sample list and configuring the corresponding input data and output paths.
 
-## 文件组成
+## Repository Files
 
-- `Base_Forcing_Loader_2024.py`：读取环境场并映射模型所需变量，是预报框架的依赖模块。
-- `Run_HyosPy_Batch_Group1_1h1h.py`：读取样本和观测，执行贝叶斯参数标定、集合轨迹预报及结果保存。
+- `Base_Forcing_Loader_2024.py`: Loads environmental forcing data and maps the variables required by the forecasting framework.
+- `Run_HyosPy_Batch_Group1_1h1h.py`: Reads samples and observations, performs Bayesian parameter calibration and ensemble trajectory forecasting, and saves trajectory results.
 
-## 参数设置
+## Parameter Settings
 
-三类海域采用相同的参数搜索范围：
+The same parameter search ranges are used for all three environmental regimes:
 
-| 参数 | 含义 | 搜索范围 |
+| Parameter | Description | Search range |
 | --- | --- | --- |
-| `fw` | 风拖曳系数 | 0–0.06 |
-| `Kh` | 水平扩散系数 | 0–20 m²/s |
-| `k_sic` | 海冰浓度系数 | 0.5–1.5 |
+| `fw` | Wind drag coefficient | 0–0.06 |
+| `Kh` | Horizontal diffusivity | 0–20 m²/s |
+| `k_sic` | Sea ice concentration correction factor | 0.5–1.5 |
 
-程序采用20个拉丁超立方采样（LHS）初始点评估和100次后续贝叶斯优化搜索迭代，UCB采集函数的κ为2.576。每次模拟使用10,000个粒子，集合预报配置为100个成员。
+The configuration uses 20 initial Latin hypercube sampling (LHS) evaluations followed by 100 Bayesian optimization iterations. The Upper Confidence Bound (UCB) acquisition function uses κ = 2.576. Each simulation uses 10,000 particles, and the ensemble forecast contains 100 members.
 
-## 运行环境
+## Requirements
 
-需安装Python及以下依赖：
+Python and the following packages are required:
 
 - NumPy
 - pandas
@@ -36,44 +36,50 @@ Python framework for Bayesian parameter calibration and ensemble trajectory fore
 - scikit-learn
 - OpenDrift
 - bayesian-optimization
-- 与输入文件兼容的NetCDF读取后端
+- A NetCDF backend compatible with the input files
 
-所用依赖版本需支持代码中的接口，包括 `bayes_opt.acquisition.UpperConfidenceBound`。
+Package versions must support the interfaces used in the code, including `bayes_opt.acquisition.UpperConfidenceBound`.
 
-## 输入数据
+## Input Data
 
-运行前需自行准备以下数据：
+Prepare the following data before running the framework:
 
-- 浮标观测CSV，包含 `buoyid`、`year`、`month`、`day`、`hour`、`lat` 和 `lon` 字段。
-- 时间窗口清单，包含 `BuoyID` 和 `Target_Time` 字段，也支持使用 `Start_Time`。
-- 海洋、海冰和风场NetCDF数据。
-- 按程序目录结构组织的100成员集合扰动场。
+- A buoy observation CSV containing `buoyid`, `year`, `month`, `day`, `hour`, `lat`, and `lon`.
+- A time-window sample list containing `BuoyID` and `Target_Time`. The script also supports `Start_Time`.
+- Ocean, sea ice, and wind forcing data in NetCDF format.
+- Perturbed forcing fields for 100 ensemble members, organized according to the directory structure expected by the script.
 
-观测和环境数据需覆盖回溯及预报时段，变量名称、单位和时间坐标应与读取配置一致。本仓库不包含上述运行数据。
+Observations and environmental forcing must cover both the calibration and forecast periods. Variable names, units, and time coordinates must match the loading configuration.
 
-## 运行步骤
+The required input datasets are not included in this repository.
 
-1. 将两个Python文件放在同一目录。
-2. 检查两个文件中的 `BASE_DIR`，并核对环境读取模块中的数据目录和变量映射。
-3. 在预报脚本中设置：
-   - `LEVEL1_FILE`：观测数据路径。
-   - `INPUT_CSV`：时间窗口样本清单。
-   - `ENSEMBLE_DIR`：集合扰动场目录。
-   - `OUT_DIR`：轨迹输出目录。
-4. 在该目录下运行：
+## Running the Framework
+
+1. Place both Python files in the same directory.
+2. Check `BASE_DIR` in both files and verify the environmental data directories and variable mappings.
+3. Configure the following paths in the forecasting script:
+   - `LEVEL1_FILE`: Buoy observation file.
+   - `INPUT_CSV`: Time-window sample list.
+   - `ENSEMBLE_DIR`: Directory containing the ensemble forcing fields.
+   - `OUT_DIR`: Directory for trajectory outputs.
+4. Run the forecasting script from that directory:
 
 ```bash
 python Run_HyosPy_Batch_Group1_1h1h.py
 ```
 
-各时间窗口的轨迹结果以CSV格式保存，包含 `Set`、`Hour`、`Lat` 和 `Lon` 字段。程序会跳过已存在结果文件的窗口；如需重新计算，应先备份并移走对应的旧结果文件。
+Trajectory results are saved as CSV files for individual time windows, with `Set`, `Hour`, `Lat`, and `Lon` fields.
 
-## 用于其他海域
+The script skips windows whose output files already exist. To rerun a window, back up and move its existing output file before execution.
 
-用于边缘冰区或开阔水域时，将 `INPUT_CSV` 替换为目标海域的样本清单，并核对对应的观测、环境场和集合扰动场路径。建议为不同海域设置独立的 `OUT_DIR`。
+## Applying the Framework to Other Regimes
 
-三类海域使用相同的参数搜索范围，无需修改 `pbounds`。脚本中的Group 1名称及高冰区提示文字为默认入口标识，不承担自动识别海域或切换参数范围的功能。
+To use the framework in marginal ice zones or open water, replace `INPUT_CSV` with the sample list for the target regime and verify the corresponding observation, environmental forcing, and ensemble forcing paths. Use a separate `OUT_DIR` for each regime.
 
-## 使用状态
+All three regimes use the same parameter search ranges, so `pbounds` does not require modification.
 
-作者已在本地数据和运行环境下成功运行代码。其他环境使用时，需配置兼容的依赖和输入数据，并核对数据路径、变量映射及时间覆盖范围。
+The Group 1 filename and high-ice-concentration messages identify the default configuration. They do not automatically detect the environmental regime or switch parameter ranges.
+
+## Usage Status
+
+The author has successfully run the code with local datasets and a configured software environment. Running it in another environment requires compatible dependencies and input data, together with verification of file paths, variable mappings, and temporal coverage.
