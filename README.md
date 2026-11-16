@@ -1,17 +1,19 @@
-# Arctic Oil-Spill BO
+# Hindcast Optimization-Rolling Forecast
 
-Python framework for Bayesian parameter calibration and ensemble trajectory forecasting in Arctic ice-covered waters.
+Python implementation of the Hindcast Optimization-Rolling Forecast framework for Arctic oil-spill trajectory prediction.
 
 ## Overview
 
-This repository provides a framework for one-hour retrospective calibration followed by one-hour ensemble trajectory forecasting in high-ice-concentration waters. The model calibrates drift parameters against observed trajectories, then initializes the forecast from the observed position at the end of the calibration period.
+This repository provides the implementation configured for one-hour hindcast parameter optimization followed by one-hour ensemble trajectory forecasting in high-ice-concentration waters. It includes environmental forcing data loading, Bayesian parameter optimization, and ensemble trajectory forecasting.
+
+For each time window, the model optimizes drift parameters against the observed trajectory during the hindcast period. The ensemble forecast then starts from the observed position at the end of that period.
 
 The same framework can be applied to marginal ice zones and open water by replacing the sample list and configuring the corresponding input data and output paths.
 
 ## Repository Files
 
-- `Base_Forcing_Loader_2024.py`: Loads environmental forcing data and maps the variables required by the forecasting framework.
-- `Run_HyosPy_Batch_Group1_1h1h.py`: Reads samples and observations, performs Bayesian parameter calibration and ensemble trajectory forecasting, and saves trajectory results.
+- `Base_Forcing_Loader_2024.py`: Loads environmental forcing data and maps the variables required by the framework.
+- `Run_HyosPy_Batch_Group1_1h1h.py`: Reads samples and observations, performs hindcast parameter optimization and ensemble trajectory forecasting, and saves trajectory results.
 
 ## Parameter Settings
 
@@ -49,7 +51,7 @@ Prepare the following data before running the framework:
 - Ocean, sea ice, and wind forcing data in NetCDF format.
 - Perturbed forcing fields for 100 ensemble members, organized according to the directory structure expected by the script.
 
-Observations and environmental forcing must cover both the calibration and forecast periods. Variable names, units, and time coordinates must match the loading configuration.
+Observations and environmental forcing must cover both the hindcast and forecast periods. Variable names, units, and time coordinates must match the loading configuration.
 
 The required input datasets are not included in this repository.
 
@@ -57,11 +59,15 @@ The required input datasets are not included in this repository.
 
 1. Place both Python files in the same directory.
 2. Check `BASE_DIR` in both files and verify the environmental data directories and variable mappings.
-3. Configure the following paths in the forecasting script:
-   - `LEVEL1_FILE`: Buoy observation file.
-   - `INPUT_CSV`: Time-window sample list.
-   - `ENSEMBLE_DIR`: Directory containing the ensemble forcing fields.
-   - `OUT_DIR`: Directory for trajectory outputs.
+3. Configure the input and output paths in the forecasting script:
+
+   | Setting | Description |
+   | --- | --- |
+   | `LEVEL1_FILE` | Buoy observation file |
+   | `INPUT_CSV` | Time-window sample list |
+   | `ENSEMBLE_DIR` | Directory containing the ensemble forcing fields |
+   | `OUT_DIR` | Directory for trajectory outputs |
+
 4. Run the forecasting script from that directory:
 
 ```bash
